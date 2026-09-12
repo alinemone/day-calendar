@@ -108,3 +108,5 @@ select,input:not([type=checkbox]):not([type=hidden]){min-height:var(--control-he
 .holiday{color:var(--rose)}
 .holiday .number{color:var(--rose)}
 .day.selected.holiday .number{color:#fffdf7}
+
+.cache-actions{border-top:0;padding:0 0 10px;justify-content:flex-start}.cache-actions #clear-events{padding:4px 0;font-size:9px;opacity:.7}
