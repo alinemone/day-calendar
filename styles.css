@@ -113,6 +113,15 @@ select,input:not([type=checkbox]):not([type=hidden]){min-height:var(--control-he
 
 .app-footer{position:fixed;inset-inline:0;bottom:0;z-index:3;display:flex;align-items:center;justify-content:space-between;min-height:34px;padding:6px 18px;background:color-mix(in srgb,var(--surface) 94%,transparent);border-top:1px solid var(--line);font-size:9px;color:var(--muted);backdrop-filter:blur(5px)}.app-footer nav{display:flex;align-items:center;gap:12px}.app-footer a,.footer-placeholder{color:var(--muted)}.app-footer a:hover{color:var(--accent)}.footer-trash{padding:3px;font-size:14px;line-height:1;color:var(--rose);opacity:.85}.footer-trash:hover{color:#8e302f}.app-footer+dialog{margin-bottom:34px}
 
+/* Footer spans the panel edges: cancel the page gutter, re-apply it as inner padding. */
+main{--page-inline:24px;padding-inline:var(--page-inline)}
+@media(max-width:340px){main{--page-inline:16px}}
+.app-footer{margin-inline:calc(var(--page-inline) * -1);padding:6px var(--page-inline)}
+
 body main{padding-bottom:52px}
 #message{bottom:48px}
 .app-footer{left:0;right:auto;width:100vw}
+
+#clear-events.footer-trash{display:grid;place-items:center;width:28px;height:28px;padding:5px;color:var(--rose);opacity:1}
+#clear-events.footer-trash:hover{color:#8e302f}
+.trash-icon{display:block;width:18px;height:18px;background:currentColor;mask:url("assets/trash.svg") center/contain no-repeat}
