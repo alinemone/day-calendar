@@ -73,7 +73,7 @@ textarea:focus,input:focus,select:focus{border-color:var(--accent);box-shadow:0 
 .primary:hover{background:#304c3e}
 .tabs button.active,.reminder-filters button[aria-selected=true]{color:var(--accent)}
 #message{background:#303e34}
-main::after{content:'';display:block;flex-shrink:0;width:56px;height:56px;margin:16px auto 24px;background:url('assets/rosette.svg') center/contain no-repeat;opacity:.28;pointer-events:none}
+.home-screen{flex:1}.home-screen::after{content:'';display:block;width:56px;height:56px;margin:18px auto 24px;background:url('assets/rosette.svg') center/contain no-repeat;opacity:.28;pointer-events:none}.app-footer{margin-top:auto}
 @media(max-width:320px){.today-header h1{gap:6px;font-size:15px}.date-rosette{width:20px;height:20px}}
 /* Shared controls and stable layout: overlays do not push the calendar down. */
 :root{--surface:#fffdf8;--field:#eeece2;--radius:10px;--control-height:40px}
