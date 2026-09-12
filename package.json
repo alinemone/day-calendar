@@ -1,1 +1,1 @@
-{"name":"rooz-sidepanel","private":true,"version":"1.4.4","type":"module","scripts":{"test":"node --test tests/*.test.js"},"devDependencies":{"@playwright/test":"^1.63.0"}}
+{"name":"rooz-sidepanel","private":true,"version":"1.4.5","type":"module","scripts":{"test":"node --test tests/*.test.js"},"devDependencies":{"@playwright/test":"^1.63.0"}}
