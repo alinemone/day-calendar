@@ -124,3 +124,6 @@ main{--page-inline:24px}
 #clear-events.footer-trash{display:grid;place-items:center;width:28px;height:28px;padding:5px;color:var(--rose);opacity:1}
 #clear-events.footer-trash:hover{color:#8e302f}
 .trash-icon{display:block;width:14px;height:14px;background:currentColor;mask:url("assets/trash.svg") center/contain no-repeat}
+
+#day-events p+p{margin-top:4px}
+#day-events .event-holiday{color:var(--rose)}
