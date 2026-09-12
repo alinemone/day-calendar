@@ -88,7 +88,7 @@ function renderCalendar(){
   const length=weekly?7:42;
   for(let i=0;i<length;i++){
     const date=addDays(start,i),p=parts(date),key=dayKey(date),button=document.createElement('button');button.className='day';
-    for(const [name,yes] of [['outside',p.month!==view.month],['friday',weekIndex(date)===6],['today',key===dayKey(new Date())],['selected',key===dayKey(selected)]])button.classList.toggle(name,yes);
+    for(const [name,yes] of [['outside',p.month!==view.month],['friday',weekIndex(date)===6],['holiday',eventsData[key]?.holiday===true],['today',key===dayKey(new Date())],['selected',key===dayKey(selected)]])button.classList.toggle(name,yes);
     button.setAttribute('aria-label',`${weekdays[weekIndex(date)]} ${fullDate(date)}`);button.setAttribute('aria-pressed',String(key===dayKey(selected)));if(key===dayKey(new Date()))button.setAttribute('aria-current','date');
     const number=document.createElement('span');number.className='number';number.textContent=fa(p.day);button.append(number);
     const dots=document.createElement('span');dots.className='dots';
