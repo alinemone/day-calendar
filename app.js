@@ -39,7 +39,7 @@ function renderNotes(){
     const actions=document.createElement('div');actions.className='note-actions';
     const created=creationLabel(note.createdAt);if(created)actions.append(created);
     const edit=document.createElement('button');edit.className='text-button';edit.textContent='ویرایش';edit.setAttribute('aria-label',`ویرایش یادداشت ${note.text.slice(0,40)}`);
-    edit.addEventListener('click',async()=>{if(draftDirty){notify('ابتدا یادداشت در حال نوشتن را ذخیره کنید.');return;}if(note.seriesId){const scope=await chooseScope('ویرایش تکرار');if(!scope)return;editingSeries=note.seriesId;editScope=scope;loadRepeat(data[`series:${note.seriesId}`],scope);}else{editingSeries=null;editScope=null;resetRepeat();}editingNote=note.key;$('note').value=note.text;$('remind-toggle').checked=(note.key.startsWith('reminder:')||note.remind);$('reminder-time').value=note.time||'09:00';updateComposer();$('note-status').textContent='ویرایش یادداشت';$('note').focus();});
+    edit.addEventListener('click',async()=>{if(draftDirty){notify('ابتدا یادداشت در حال نوشتن را ذخیره کنید.');return;}if(note.seriesId){const scope=await chooseScope('ویرایش تکرار');if(!scope)return;editingSeries=note.seriesId;editScope=scope;loadRepeat(data[`series:${note.seriesId}`],scope);}else{editingSeries=null;editScope=null;resetRepeat();}editingNote=note.key;$('note').value=note.text;$('remind-toggle').checked=(note.key.startsWith('reminder:')||note.remind);$('reminder-time').value=note.time||'09:00';updateComposer();$('note-status').textContent='ویرایش یادداشت';$('note').focus({preventScroll:true});});
     const remove=document.createElement('button');remove.className='text-button delete-note';remove.textContent='حذف';remove.setAttribute('aria-label',`حذف یادداشت ${note.text.slice(0,40)}`);
     remove.addEventListener('click',async()=>{remove.disabled=true;try{if(note.seriesId){const scope=await chooseScope('حذف تکرار');if(!scope){remove.disabled=false;return;}await request({type:'delete-series',seriesId:note.seriesId,date:note.date,scope});}else if((note.key.startsWith('reminder:')||note.remind))await request({type:'delete',id:note.id});else await storage.remove(note.key);if(editingNote===note.key){editingNote=null;editingSeries=null;editScope=null;resetRepeat();draftDirty=false;$('note').value='';$('remind-toggle').checked=false;drafts.delete(note.date);updateComposer();}await refresh();notify('یادداشت حذف شد.');}catch{remove.disabled=false;notify('حذف انجام نشد؛ دوباره تلاش کنید.');}});
     actions.append(edit,remove);article.append(text,actions);list.append(article);
@@ -84,8 +84,7 @@ function renderCalendar(){
   document.querySelectorAll('.weekdays span').forEach((el,i)=>el.textContent=weekdays[i]);
   $('month-title').textContent=`${months[view.month-1]} ${fa(view.year)}`;$('calendar').replaceChildren();
   const first=fromPersian(view.year,view.month,1),start=weekly?addDays(selected,-weekIndex(selected)):addDays(first,-weekIndex(first));
-  const next=view.month===12?new Date(fromPersian(view.year,12,1).getTime()+32*86400000):fromPersian(view.year,view.month+1,1);
-  const length=weekly?7:Math.ceil((weekIndex(first)+parts(addDays(next,-parts(next).day)).day)/7)*7;
+  const length=weekly?7:42;
   for(let i=0;i<length;i++){
     const date=addDays(start,i),p=parts(date),key=dayKey(date),button=document.createElement('button');button.className='day';
     for(const [name,yes] of [['outside',p.month!==view.month],['friday',weekIndex(date)===6],['today',key===dayKey(new Date())],['selected',key===dayKey(selected)]])button.classList.toggle(name,yes);
@@ -108,7 +107,7 @@ async function refresh(){data=await storage.get(null);if(!preferencesLoaded){wee
 document.querySelectorAll('[data-tab]').forEach(b=>b.addEventListener('click',()=>showTab(b.dataset.tab)));
 $('open-alerts').addEventListener('click',()=>showTab('alerts'));
 $('today').addEventListener('click',()=>selectDay(fromKey(dayKey(new Date()))));
-function closeMonthPicker(focus=false){$('month-picker').hidden=true;$('month-title').setAttribute('aria-expanded','false');if(focus)$('month-title').focus();}
+function closeMonthPicker(focus=false){$('month-picker').hidden=true;$('month-title').setAttribute('aria-expanded','false');if(focus)$('month-title').focus({preventScroll:true});}
 function renderMonthChoices(){
   $('jump-months').replaceChildren(...months.map((name,index)=>{
     const button=document.createElement('button');button.type='button';button.textContent=name;
@@ -117,14 +116,14 @@ function renderMonthChoices(){
       const date=fromPersian(+$('jump-year').value,index+1,1);
       weekly=false;closeMonthPicker();selectDay(date);
       storage.set({viewMode:'month'}).catch(()=>notify('ذخیره تنظیمات انجام نشد.'));
-      document.querySelector('#calendar .selected')?.focus();
+      document.querySelector('#calendar .selected')?.focus({preventScroll:true});
     });return button;
   }));
 }
 $('month-title').addEventListener('click',()=>{
   if(!$('month-picker').hidden){closeMonthPicker();return;}
   fillChoices('jump-year',Array.from({length:401},(_,i)=>1200+i),fa,view.year);renderMonthChoices();
-  $('month-picker').hidden=false;$('month-title').setAttribute('aria-expanded','true');$('jump-year').focus();
+  $('month-picker').hidden=false;$('month-title').setAttribute('aria-expanded','true');$('jump-year').focus({preventScroll:true});
 });
 $('jump-year').addEventListener('change',renderMonthChoices);
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('month-picker').hidden){e.preventDefault();closeMonthPicker(true);}});

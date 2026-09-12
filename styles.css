@@ -75,3 +75,23 @@ textarea:focus,input:focus,select:focus{border-color:var(--accent);box-shadow:0 
 #message{background:#303e34}
 main::after{content:'';display:block;flex-shrink:0;width:56px;height:56px;margin:16px auto 24px;background:url('assets/rosette.svg') center/contain no-repeat;opacity:.28;pointer-events:none}
 @media(max-width:320px){.today-header h1{gap:6px;font-size:15px}.date-rosette{width:20px;height:20px}}
+/* Shared controls and stable layout: overlays do not push the calendar down. */
+:root{--surface:#fffdf8;--field:#eeece2;--radius:10px;--control-height:40px}
+html{scrollbar-gutter:stable;overflow-anchor:none}
+.panel{animation:none}
+.month-picker{position:absolute;z-index:4;inset-inline:0;top:58px;margin:0;padding:16px;max-height:min(340px,calc(100dvh - 170px));overflow-y:auto;overscroll-behavior:contain;box-shadow:0 6px 18px #30362f12}
+textarea,input,select,.month-picker,#series-scope{border-radius:var(--radius);background-color:var(--surface)}
+textarea{background-color:var(--field)}
+select,input:not([type=checkbox]):not([type=hidden]){min-height:var(--control-height)}
+.primary,.month-grid button{border-radius:var(--radius);min-height:36px}
+.time-24 select{min-height:36px}
+.composer-tools{min-height:52px}
+#reminder-time-row[hidden]{display:block!important;visibility:hidden;pointer-events:none}
+#note-status{display:block;min-height:19px}
+#note-status:empty{display:block}
+#repeat-days label{margin:6px 0;min-height:28px}
+#repeat-options select{margin-bottom:4px}
+#repeat-options summary{padding:8px 0}
+#repeat-edit-hint{margin-top:8px}
+#series-scope{padding:20px;border-color:var(--line)}
+#series-scope button{min-height:36px;border-radius:var(--radius)}
