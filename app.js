@@ -79,7 +79,9 @@ function showTab(tab){
 }
 $('back-home').addEventListener('click',()=>{showTab(homeTab);window.scrollTo(0,homeScroll);$('open-alerts').focus({preventScroll:true});});
 document.querySelector('.reminder-filters').addEventListener('keydown',e=>{if(!['ArrowLeft','ArrowRight','Home','End'].includes(e.key))return;e.preventDefault();const next=e.key==='Home'?'due':e.key==='End'?'upcoming':reminderFilter==='due'?'upcoming':'due';const button=document.querySelector(`[data-reminder-filter="${next}"]`);button.click();button.focus();});
-function renderToday(){const now=new Date();$('today-weekday').textContent=weekdays[weekIndex(now)];$('today-date').textContent=fullDate(now);}
+const gregorianHeader=new Intl.DateTimeFormat('fa-IR',{calendar:'gregory',timeZone:ZONE,year:'numeric',month:'long',day:'numeric'});
+const hijriHeader=new Intl.DateTimeFormat('fa-IR',{calendar:'islamic-civil',timeZone:ZONE,year:'numeric',month:'long',day:'numeric'});
+function renderToday(){const now=new Date();$('today-weekday').textContent=weekdays[weekIndex(now)];$('today-date').textContent=fullDate(now);$('today-gregorian').textContent=gregorianHeader.format(now)+' میلادی';$('today-gregorian').dateTime=dayKey(now);$('today-hijri').textContent=hijriHeader.format(now)+' قمری';}
 let eventsRequestKey='',eventsGeneration=0;
 function renderCalendar(){
   void loadEvents();

@@ -127,3 +127,8 @@ main{--page-inline:24px}
 
 #day-events p+p{margin-top:4px}
 #day-events .event-holiday{color:var(--rose)}
+
+.today-dates{min-width:0}
+.secondary-dates{display:flex;flex-wrap:wrap;column-gap:10px;row-gap:2px;margin-top:4px;padding-inline-start:32px;color:var(--muted);font-size:10px;font-weight:400;line-height:1.8}
+.secondary-dates time{white-space:nowrap}
+@media(max-width:320px){.secondary-dates{padding-inline-start:26px}}
