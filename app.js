@@ -80,7 +80,9 @@ function showTab(tab){
 $('back-home').addEventListener('click',()=>{showTab(homeTab);window.scrollTo(0,homeScroll);$('open-alerts').focus({preventScroll:true});});
 document.querySelector('.reminder-filters').addEventListener('keydown',e=>{if(!['ArrowLeft','ArrowRight','Home','End'].includes(e.key))return;e.preventDefault();const next=e.key==='Home'?'due':e.key==='End'?'upcoming':reminderFilter==='due'?'upcoming':'due';const button=document.querySelector(`[data-reminder-filter="${next}"]`);button.click();button.focus();});
 function renderToday(){const now=new Date();$('today-weekday').textContent=weekdays[weekIndex(now)];$('today-date').textContent=fullDate(now);}
+let eventsRequestKey='',eventsGeneration=0;
 function renderCalendar(){
+  void loadEvents();
   $('week-toggle').textContent=weekly?'نمای ماهانه':'نمای هفتگی';
   document.querySelectorAll('.weekdays span').forEach((el,i)=>el.textContent=weekdays[i]);
   $('month-title').textContent=`${months[view.month-1]} ${fa(view.year)}`;$('calendar').replaceChildren();
@@ -104,8 +106,19 @@ function renderReminders(container,items,all){
   container.replaceChildren();if(!items.length){const p=document.createElement('p');p.className='empty';p.textContent=all?'هنوز یادآوری ندارید.':'برای این روز یادآوری ثبت نشده.';container.append(p);return;}
   for(const r of items){const row=document.createElement('div');row.className=`reminder${r.firedAt?' done':''}`;const time=document.createElement('time');time.textContent=fa(r.time);const content=document.createElement('div');content.className='content';const title=document.createElement('strong');title.textContent=r.title;const detail=document.createElement('small');detail.textContent=`${all?fullDate(fromKey(r.date))+' · ':''}${r.expiredOnRestore?'گذشته · بازیابی‌شده':r.firedAt?'اعلان ارسال شد':r.when<Date.now()?'در انتظار ارسال':'در انتظار یادآوری'}`;content.append(title,detail);const created=creationLabel(r.createdAt);if(created)content.append(created);const del=document.createElement('button');del.className='delete';del.textContent='×';del.setAttribute('aria-label',`حذف یادآور ${r.title}`);del.addEventListener('click',async()=>{try{if(r.seriesId){const scope=await chooseScope('حذف تکرار');if(!scope)return;await request({type:'delete-series',seriesId:r.seriesId,date:r.date,scope});}else await request({type:'delete',id:r.id});await refresh();notify('یادآور حذف شد.');}catch(e){notify(e.message);}});row.append(time,content,del);container.append(row);}
 }
-async function loadEvents(){try{eventsData=await fetchCalendarEvents(view.year,view.month);eventsState='ok';}catch{eventsData={};eventsState='error';}}
-async function refresh(){data=await storage.get(null);await loadEvents();if(!preferencesLoaded){weekly=data.viewMode!=='month';preferencesLoaded=true;}renderCalendar();renderDay();renderAlerts();}
+async function loadEvents(force=false){
+  const years=[view.year];if(view.year!==parts(selected).year)years.push(parts(selected).year);
+  const key=years.join(':');if(!force&&key===eventsRequestKey)return;
+  eventsRequestKey=key;const generation=++eventsGeneration;
+  try{
+    const results=await Promise.all(years.map(year=>fetchCalendarEvents(year)));
+    if(generation!==eventsGeneration)return;
+    eventsData=Object.fromEntries(results.flatMap(result=>Object.entries(result).map(([date,item])=>{const [y,m,d]=date.split('-').map(Number);return [dayKey(fromPersian(y,m,d)),item];})));
+    eventsState='ok';
+  }catch(error){if(generation!==eventsGeneration)return;eventsData={};eventsState='error';console.warn('Calendar events unavailable:',error.message);}
+  renderCalendar();renderDay();
+}
+async function refresh(){data=await storage.get(null);if(!preferencesLoaded){weekly=data.viewMode!=='month';preferencesLoaded=true;}renderCalendar();renderDay();renderAlerts();}
 document.querySelectorAll('[data-tab]').forEach(b=>b.addEventListener('click',()=>showTab(b.dataset.tab)));
 $('open-alerts').addEventListener('click',()=>showTab('alerts'));
 $('today').addEventListener('click',()=>selectDay(fromKey(dayKey(new Date()))));
@@ -185,4 +198,4 @@ $('go-converted').addEventListener('click',()=>selectDay(converted));
 try{await refresh();selectDay(selected);renderToday();if(isExtension){chrome.storage.onChanged.addListener(async(changes,area)=>{if(area!=='local')return;await refresh();});await request({type:'sync'});const dateParam=new URLSearchParams(location.search).get('date');if(dateParam&&/^\d{4}-\d{2}-\d{2}$/.test(dateParam))selectDay(fromKey(dateParam));const id=new URLSearchParams(location.search).get('reminder');if(id&&data[`reminder:${id}`])selectDay(fromKey(data[`reminder:${id}`].date));}}catch(error){notify(error.message);}
 let lastToday=dayKey(new Date());setInterval(()=>{renderToday();renderAlerts();markVisibleRemindersSeen();const today=dayKey(new Date());if(today!==lastToday){const follow=dayKey(selected)===lastToday;lastToday=today;if(follow)selectDay(fromKey(today),false);else{renderCalendar();renderDay();}}},15000);
 
-$('clear-events').addEventListener('click',()=>{clearEventsCache();eventsData={};renderDay();notify('کش مناسبت‌ها پاک شد.');});
+$('clear-events').addEventListener('click',async()=>{clearEventsCache();eventsData={};await loadEvents(true);renderCalendar();renderDay();notify('کش مناسبت‌ها پاک شد.');});
