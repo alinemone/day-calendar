@@ -19,7 +19,8 @@ export async function fetchCalendarEvents(year,month,storage=globalThis.localSto
   const query=month?`?year=${year}&month=${month}`:`?year=${year}`;
   const response=await fetch(`${ENDPOINT}${query}`,{headers:{Accept:'application/json'}});if(!response.ok)throw new Error('events http');
   const raw=await response.json(),days={};const source=raw?.result||{};
-  for(const [m,v] of Object.entries(source))for(const [d,item] of (month?[[m,v]]:Object.entries(v||{}))){const date=`${year}-${String(month||m).padStart(2,'0')}-${String(month?m:d).padStart(2,'0')}`;days[date]={date,holiday:item?.holiday===true,events:Array.isArray(item?.event)?item.event.filter(Boolean):[]};}
+  const entries=month?Object.entries(source).map(([day,item])=>[month,day,item]):Object.entries(source).flatMap(([m,monthData])=>Object.entries(monthData||{}).map(([day,item])=>[m,day,item]));
+  for(const [m,d,item] of entries){const date=`${year}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;days[date]={date,holiday:item?.holiday===true,events:Array.isArray(item?.event)?item.event.filter(Boolean):[]};}
   try{cache[key]={expires:now+TTL,days};storage?.setItem(KEY,JSON.stringify(cache));}catch{}
   return days;
 }
