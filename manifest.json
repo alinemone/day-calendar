@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "روز | تقویم آرام شما",
-  "version": "1.4.2",
+  "version": "1.4.3",
   "description": "تقویم شمسی مینیمال، تبدیل تاریخ، یادداشت روزانه و یادآور؛ به وقت تهران.",
   "minimum_chrome_version": "116",
   "permissions": [

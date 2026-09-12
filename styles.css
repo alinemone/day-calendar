@@ -40,7 +40,7 @@ body{font-family:Vazirmatn,sans-serif}
 .date-selectors select{padding:10px 5px;min-width:0}
 /* Content width only: Chrome owns the side-panel frame and its resize handle. */
 body main{width:100%;max-width:360px;padding-inline:18px}
-.weekdays span{font-size:clamp(8px,2.3vw,10px);white-space:nowrap}
+.weekdays span{font-size:10px;line-height:1.5;white-space:nowrap;min-width:0}
 .created-time,.reminder .created-time{font-size:10px;font-weight:400;color:var(--muted);font-variant-numeric:tabular-nums}
 .note-actions .created-time{margin-inline-end:auto;align-self:center}
 .reminder .created-time{display:block;margin-top:3px}
@@ -95,3 +95,5 @@ select,input:not([type=checkbox]):not([type=hidden]){min-height:var(--control-he
 #repeat-edit-hint{margin-top:8px}
 #series-scope{padding:20px;border-color:var(--line)}
 #series-scope button{min-height:36px;border-radius:var(--radius)}
+
+@media(max-width:320px){.weekdays span{font-size:9px;letter-spacing:-.15px}}
