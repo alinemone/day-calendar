@@ -97,3 +97,5 @@ select,input:not([type=checkbox]):not([type=hidden]){min-height:var(--control-he
 #series-scope button{min-height:36px;border-radius:var(--radius)}
 
 @media(max-width:320px){.weekdays span{font-size:9px;letter-spacing:-.15px}}
+.event-line{margin-top:-14px;margin-bottom:15px;padding:9px 11px;border-inline-start:2px solid var(--gold);background:#f0ede3;border-radius:6px;font-size:10px;line-height:1.9}
+#clear-events{margin-inline-start:auto}

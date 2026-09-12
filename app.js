@@ -1,7 +1,8 @@
+import {fetchCalendarEvents,clearEventsCache} from './events.js';
 import {occurrence,nextOccurrence} from './recurrence.js';
 import {ZONE,months,weekdays,fa,parts,dayKey,fromKey,addDays,weekIndex,fullDate,fromPersian,parseDate} from './calendar.js';
 const $=id=>document.getElementById(id), isExtension=!!globalThis.chrome?.runtime?.id;
-let data={},selected=fromKey(dayKey(new Date())),view=parts(selected),weekly=true,preferencesLoaded=false,converted=null,draftDirty=false,messageTimer;
+let eventsData={},eventsState='idle',data={},selected=fromKey(dayKey(new Date())),view=parts(selected),weekly=true,preferencesLoaded=false,converted=null,draftDirty=false,messageTimer;
 const drafts=new Map();
 let editingNote=null,editingSeries=null,editScope=null;
 function chooseScope(title){return new Promise(resolve=>{const dialog=$('series-scope');$('scope-title').textContent=title;dialog.returnValue='cancel';dialog.addEventListener('close',()=>resolve(['one','all'].includes(dialog.returnValue)?dialog.returnValue:null),{once:true});dialog.showModal();});}
@@ -98,12 +99,13 @@ function renderCalendar(){
   $('prev').disabled=view.year===1200&&view.month===1;$('next').disabled=view.year===1600&&view.month===12;
 }
 function selectDay(date,navigate=true){if(parts(date).year<1200||parts(date).year>1600)return;if(draftDirty)drafts.set(dayKey(selected),{text:$('note').value,key:editingNote,remind:$('remind-toggle').checked,time:$('reminder-time').value,repeat:repeatDraft(),series:editingSeries,scope:editScope});selected=date;view=parts(date);const draft=drafts.get(dayKey(selected));draftDirty=!!draft;editingNote=draft?.key??null;editingSeries=draft?.series??null;editScope=draft?.scope??null;resetRepeat();if(editingSeries&&data[`series:${editingSeries}`])loadRepeat(data[`series:${editingSeries}`],editScope);if(draft?.repeat)restoreRepeat(draft.repeat);$('note').value=draft?.text??'';$('remind-toggle').checked=draft?.remind??false;$('reminder-time').value=draft?.time||'09:00';updateComposer();$('note-status').textContent=draftDirty?'تغییرات ذخیره نشده':'';renderCalendar();renderDay();if(navigate)showTab('day');}
-function renderDay(){$('selected-title').textContent=fullDate(selected);$('selected-relative').textContent=dayKey(selected)===dayKey(new Date())?'امروز':weekdays[weekIndex(selected)];renderNotes();}
+function renderDay(){const e=eventsData[dayKey(selected)];$('selected-title').textContent=fullDate(selected);$('selected-relative').textContent=dayKey(selected)===dayKey(new Date())?'امروز':weekdays[weekIndex(selected)];renderNotes();let old=$('event-line');if(old)old.remove();if(e?.events?.length||e?.holiday){const line=document.createElement('p');line.id='event-line';line.className='small event-line';line.textContent=`${e.holiday?'تعطیل · ':''}${(e.events||[]).join(' · ')}`;$('day-panel').prepend(line);}}
 function renderReminders(container,items,all){
   container.replaceChildren();if(!items.length){const p=document.createElement('p');p.className='empty';p.textContent=all?'هنوز یادآوری ندارید.':'برای این روز یادآوری ثبت نشده.';container.append(p);return;}
   for(const r of items){const row=document.createElement('div');row.className=`reminder${r.firedAt?' done':''}`;const time=document.createElement('time');time.textContent=fa(r.time);const content=document.createElement('div');content.className='content';const title=document.createElement('strong');title.textContent=r.title;const detail=document.createElement('small');detail.textContent=`${all?fullDate(fromKey(r.date))+' · ':''}${r.expiredOnRestore?'گذشته · بازیابی‌شده':r.firedAt?'اعلان ارسال شد':r.when<Date.now()?'در انتظار ارسال':'در انتظار یادآوری'}`;content.append(title,detail);const created=creationLabel(r.createdAt);if(created)content.append(created);const del=document.createElement('button');del.className='delete';del.textContent='×';del.setAttribute('aria-label',`حذف یادآور ${r.title}`);del.addEventListener('click',async()=>{try{if(r.seriesId){const scope=await chooseScope('حذف تکرار');if(!scope)return;await request({type:'delete-series',seriesId:r.seriesId,date:r.date,scope});}else await request({type:'delete',id:r.id});await refresh();notify('یادآور حذف شد.');}catch(e){notify(e.message);}});row.append(time,content,del);container.append(row);}
 }
-async function refresh(){data=await storage.get(null);if(!preferencesLoaded){weekly=data.viewMode!=='month';preferencesLoaded=true;}renderCalendar();renderDay();renderAlerts();}
+async function loadEvents(){try{eventsData=await fetchCalendarEvents(view.year,view.month);eventsState='ok';}catch{eventsData={};eventsState='error';}}
+async function refresh(){data=await storage.get(null);await loadEvents();if(!preferencesLoaded){weekly=data.viewMode!=='month';preferencesLoaded=true;}renderCalendar();renderDay();renderAlerts();}
 document.querySelectorAll('[data-tab]').forEach(b=>b.addEventListener('click',()=>showTab(b.dataset.tab)));
 $('open-alerts').addEventListener('click',()=>showTab('alerts'));
 $('today').addEventListener('click',()=>selectDay(fromKey(dayKey(new Date()))));
@@ -182,3 +184,5 @@ initializeConverter();
 $('go-converted').addEventListener('click',()=>selectDay(converted));
 try{await refresh();selectDay(selected);renderToday();if(isExtension){chrome.storage.onChanged.addListener(async(changes,area)=>{if(area!=='local')return;await refresh();});await request({type:'sync'});const dateParam=new URLSearchParams(location.search).get('date');if(dateParam&&/^\d{4}-\d{2}-\d{2}$/.test(dateParam))selectDay(fromKey(dateParam));const id=new URLSearchParams(location.search).get('reminder');if(id&&data[`reminder:${id}`])selectDay(fromKey(data[`reminder:${id}`].date));}}catch(error){notify(error.message);}
 let lastToday=dayKey(new Date());setInterval(()=>{renderToday();renderAlerts();markVisibleRemindersSeen();const today=dayKey(new Date());if(today!==lastToday){const follow=dayKey(selected)===lastToday;lastToday=today;if(follow)selectDay(fromKey(today),false);else{renderCalendar();renderDay();}}},15000);
+
+$('clear-events').addEventListener('click',()=>{clearEventsCache();eventsData={};renderDay();notify('کش مناسبت‌ها پاک شد.');});
