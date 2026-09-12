@@ -1,0 +1,13 @@
+{
+  "manifest_version": 3,
+  "name": "روز | تقویم آرام شما",
+  "version": "1.4.0",
+  "description": "تقویم شمسی مینیمال، تبدیل تاریخ، یادداشت روزانه و یادآور؛ به وقت تهران.",
+  "minimum_chrome_version": "116",
+  "permissions": ["sidePanel", "storage", "alarms", "notifications"],
+  "action": {"default_title": "روز | تقویم شمسی", "default_icon": "assets/icon128.png"},
+  "icons": {"128": "assets/icon128.png"},
+  "side_panel": {"default_path": "sidepanel.html"},
+  "background": {"service_worker": "background.js", "type": "module"},
+  "content_security_policy": {"extension_pages": "script-src 'self'; object-src 'self'"}
+}
